@@ -83,3 +83,5 @@ Thumbs.db
 
 # TernJS port file
 .tern-port
+.vercel
+.env*
