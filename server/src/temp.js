@@ -1,8 +1,7 @@
-import axios from "axios";
-import * as cheerio from 'cheerio';
-import 'dotenv/config';
-
-import utils from "./utils.js";
+require('dotenv').config();
+const axios = require('axios');
+const cheerio = require('cheerio');
+const utils = require('./utils')
 
 async function scrapeRegionalPage(){
   const regionalInfo = [];
@@ -26,13 +25,21 @@ async function scrapeRegionalPage(){
         if(columnName === 'Venue/Address'){
           const { venue, address } = utils.extractVenueAndAddress(rowText);
           rowData['Venue'] = venue;
-          rowData['Address'] = address
+          rowData['Address'] = address;
+        } 
+        else if(columnName === 'Contact'){
+          const { email, phone } = utils.extractEmailAndPhone(rowText);
+          rowData['Email'] = email;
+          rowData['Phone'] = phone;
+        } 
+        else if(columnName === 'Date/Time'){
+          const { date, time } = utils.extractEventDateTime(rowText);
+          rowData['Date'] = date;
+          rowData['Start Time'] = time;
         } 
         else {
           rowData[columnName] = rowText;
         }
-
-        //rowData[columnName] = rowText;
       });
       
       regionalInfo.push(rowData);
@@ -83,10 +90,10 @@ async function getVenueInfo(lng, lat){
 }
 
 
-const eventInfoRegional = await scrapeRegionalPage();
-const cbusRegional = eventInfoRegional.filter(events => events['State / Province'] === 'OH')[0];
-console.log(new Date(cbusRegional['Date/Time']).toTimeString());
-//console.log(await getLatLongData(cbusRegional['Venue/Address']));
-//console.log(await getRouteInfo('2299 Waters Edge Blvd Columbus, OH 43209', cbusRegional['Venue/Address']));
-//const coords = await getLatLongData(cbusRegional['Venue/Address']);
-//await getVenueInfo(coords.lng, coords.lat);
+async function test(){
+  const eventInfoRegional = await scrapeRegionalPage();
+  const cbusRegional = eventInfoRegional.filter(events => events['State / Province'] === 'OH')[0];
+  console.log(eventInfoRegional);
+}
+
+test();

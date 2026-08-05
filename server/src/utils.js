@@ -44,10 +44,54 @@ function extractVenueAndAddress(input) {
   return { venue, address };
 }
 
-function extractEventDateTime(dateTimeStr){
-  
+function extractEmailAndPhone(input) {
+  if (!input || typeof input !== 'string') {
+    return { email: '', phone: '' };
+  }
+
+  const text = input.trim();
+
+  // --- Email pattern ---
+  // Standard email format: local-part@domain.tld
+  const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/;
+
+  // --- Phone pattern ---
+  // Matches common US/international formats:
+  // (123) 456-7890, 123-456-7890, 123.456.7890, 1234567890,
+  // +1 123-456-7890, +44 20 7946 0958, with optional extension
+  const phoneRegex = /(\+?\d{1,3}[\s.-]?)?(\(?\d{2,4}\)?[\s.-]?)?\d{3,4}[\s.-]?\d{4}(\s?(ext|x|extension)\.?\s?\d{1,5})?/i;
+
+  const emailMatch = text.match(emailRegex);
+  const email = emailMatch ? emailMatch[0].trim() : '';
+
+  // Remove the email from text before searching for phone,
+  // to avoid accidentally matching digits within an email/domain
+  const textWithoutEmail = email ? text.replace(email, '') : text;
+
+  const phoneMatch = textWithoutEmail.match(phoneRegex);
+  let phone = phoneMatch ? phoneMatch[0].trim() : '';
+
+  // Clean up stray punctuation/whitespace at edges
+  phone = phone.replace(/^[\s,;:-]+|[\s,;:-]+$/g, '');
+
+  return { email, phone };
 }
 
-export default {
-  extractVenueAndAddress
+function extractEventDateTime(input){
+  if (!input || typeof input !== 'string') {
+    return { date: '', time: '' };
+  }
+  const eventInstant = Temporal.Instant.from(new Date(input.trim()).toISOString());
+  const eventNormalized = Temporal.PlainDateTime.from(eventInstant.toZonedDateTimeISO('America/New_York'));
+
+  const date = eventNormalized.toPlainDate().toString();
+  const time = eventNormalized.toPlainTime().toString();
+  
+  return { date, time };
+}
+
+module.exports = {
+  extractVenueAndAddress,
+  extractEmailAndPhone,
+  extractEventDateTime
 }
