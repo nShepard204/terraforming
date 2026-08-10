@@ -1,7 +1,9 @@
-require('dotenv').config();
 const axios = require('axios');
 const cheerio = require('cheerio');
-const utils = require('./utils')
+const utils = require('./utils');
+const hosts = require('./hosts');
+const db = require('../db');
+
 
 async function scrapeRegionalPage(){
   const regionalInfo = [];
@@ -10,39 +12,43 @@ async function scrapeRegionalPage(){
     const { data } = await axios.get('https://www.yugioh-card.com/en/events/regional-locations/');
     const $ = cheerio.load(data);
 
-    const columns = [];
-    $('table thead th').each((i, el) => {
-      columns.push($(el).text().trim());
-    });
+    $('table').each((i, table) => {
+      const isGenesys = $(table).attr('id').includes('gen');
 
-    $('table tbody tr').each((i, row) => {
-      const rowData = {};
-      
-      $(row).find('td').each((j, cell) => {
-        const columnName = columns[j] || `column_${j}`;
-        const rowText = $(cell).text().trim().replace(/[\r\n]+/gm, " ");
-
-        if(columnName === 'Venue/Address'){
-          const { venue, address } = utils.extractVenueAndAddress(rowText);
-          rowData['Venue'] = venue;
-          rowData['Address'] = address;
-        } 
-        else if(columnName === 'Contact'){
-          const { email, phone } = utils.extractEmailAndPhone(rowText);
-          rowData['Email'] = email;
-          rowData['Phone'] = phone;
-        } 
-        else if(columnName === 'Date/Time'){
-          const { date, time } = utils.extractEventDateTime(rowText);
-          rowData['Date'] = date;
-          rowData['Start Time'] = time;
-        } 
-        else {
-          rowData[columnName] = rowText;
-        }
+      const columns = [];
+      $(table).find('thead th').each((i, el) => {
+        columns.push($(el).text().trim());
       });
-      
-      regionalInfo.push(rowData);
+
+      $(table).find('tbody tr').each((i, row) => {
+        const rowData = {};
+        
+        $(row).find('td').each((j, cell) => {
+          const columnName = columns[j] || `column_${j}`;
+          const rowText = $(cell).text().trim().replace(/[\r\n]+/gm, " ");
+
+          if(columnName === 'Venue/Address'){
+            const { venue, address } = utils.extractVenueAndAddress(rowText);
+            rowData['Venue'] = venue;
+            rowData['Address'] = address;
+          } 
+          else if(columnName === 'Contact'){
+            const { email, phone } = utils.extractEmailAndPhone(rowText);
+            rowData['Email'] = email;
+            rowData['Phone'] = phone;
+          } 
+          else if(columnName === 'Date/Time'){
+            const { date, time } = utils.extractEventDateTime(rowText);
+            rowData['Date'] = date;
+            rowData['Start Time'] = time;
+          } 
+          else {
+            rowData[columnName] = rowText;
+          }
+        });
+        rowData['Genesys'] = isGenesys;
+        regionalInfo.push(rowData);
+      });
     });
   } catch (err) {
     console.error(err);
@@ -89,11 +95,28 @@ async function getVenueInfo(lng, lat){
     
 }
 
-
 async function test(){
   const eventInfoRegional = await scrapeRegionalPage();
-  const cbusRegional = eventInfoRegional.filter(events => events['State / Province'] === 'OH')[0];
-  console.log(eventInfoRegional);
+  console.log(eventInfoRegional[0]);
+
+  const client = await db.getClient();
+  try {
+    await client.query('BEGIN');
+
+    const queryStr = 'INSERT INTO hosts (name, email, phone_number) VALUES ($1, $2, $3) ON CONFLICT(name) DO UPDATE SET name = EXCLUDED.name, email = EXCLUDED.email, phone_number = EXCLUDED.phone_number RETURNING id';
+
+    eventInfoRegional.forEach(async (event) => {
+      const params = [event['Event Host'], event['Email'], event['Phone']];
+      const res = await client.query(queryStr, params);
+    })
+
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error(err);
+  } finally {
+    client.release();
+  }
 }
 
 test();
