@@ -1,21 +1,21 @@
 require('dotenv').config();
 const axios = require('axios');
 const cheerio = require('cheerio');
-const utils = require('../src/utils');
 const mapbox = require('../src/mapbox');
 const db = require('../db');
 
-//TODO: Add timezone fetching to this.
-async function upsertVenues(regionals) {
+/**
+ * @param {any[]} venues 
+ */
+async function upsertVenues(venues) {
   const client = await db.getClient();
   try {
     await client.query('BEGIN');
 
-    const queryStr = 'INSERT INTO venues (name, street_address, state, country, player_cap, location) VALUES ($1, $2, $3, $4, $5, ST_MakePoint($6, $7)) ON CONFLICT(name) DO UPDATE SET name = EXCLUDED.name, street_address = EXCLUDED.street_address, state = EXCLUDED.state, country = EXCLUDED.country, player_cap = EXCLUDED.player_cap, location = EXCLUDED.location RETURNING id';
+    const queryStr = 'INSERT INTO venues (name, address, state, country, player_cap) VALUES ($1, $2, $3, $4, $5) ON CONFLICT(name) DO UPDATE SET name = EXCLUDED.name, address = EXCLUDED.address, state = EXCLUDED.state, country = EXCLUDED.country, player_cap = EXCLUDED.player_cap RETURNING id';
 
-    regionals.forEach(async (event) => {
-      const { lng, lat } = await mapbox.getLatLonData(event['Address']);
-      const params = [event['Venue'], event['Address'], event['State / Province'], event['Country'], event['Venue Seating Capacity'] || 0, lng, lat];
+    venues.forEach(async (venue) => {
+      const params = [venue.name, venue.address, venue.state, venue.country, venue.playerCap];
       const res = await client.query(queryStr, params);
     })
 
@@ -27,16 +27,18 @@ async function upsertVenues(regionals) {
     client.release();
   }
 }
-
-async function upsertHosts(regionals) {
+/**
+ * @param {any[]} hosts 
+ */
+async function upsertHosts(hosts) {
   const client = await db.getClient();
   try {
     await client.query('BEGIN');
 
     const queryStr = 'INSERT INTO hosts (name, email, phone_number) VALUES ($1, $2, $3) ON CONFLICT(name) DO UPDATE SET name = EXCLUDED.name, email = EXCLUDED.email, phone_number = EXCLUDED.phone_number RETURNING id';
 
-    regionals.forEach(async (event) => {
-      const params = [event['Event Host'], event['Email'], event['Phone']];
+    hosts.forEach(async (host) => {
+      const params = [host.name, host.email, host.phoneNumber];
       const res = await client.query(queryStr, params);
     })
 
@@ -49,17 +51,27 @@ async function upsertHosts(regionals) {
   }
 }
 
+/**
+ * @param {string} pageUrl 
+ * @returns {Promise<any[]>}
+ */
 async function scrapeInfoFromPage(pageUrl){
+  /** @type {any[]} */
   const regionalInfo = [];
 
   try {
     const { data } = await axios.get(pageUrl);
     const $ = cheerio.load(data);
 
+    /** @type {any[]} */
+    const columns = [];
+
     $('table').each((i, table) => {
       const isGenesys = $(table).attr('id').includes('gen');
 
+      /** @type {any[]} */
       const columns = [];
+
       $(table).find('thead th').each((i, el) => {
         columns.push($(el).text().trim());
       });
@@ -69,31 +81,40 @@ async function scrapeInfoFromPage(pageUrl){
         
         $(row).find('td').each((j, cell) => {
           const columnName = columns[j] || `column_${j}`;
-          const rowText = $(cell).text().trim().replace(/[\r\n]+/gm, " ");
+          const rowText = $(cell).text().trim()//.replace(/[\r\n]+/gm, " ");
 
-          if(columnName.includes('Venue') && columnName.includes('Address')){
-            const { venue, address } = utils.extractVenueAndAddress(rowText);
-            rowData['Venue'] = venue;
-            rowData['Address'] = address;
+          if(columnName.match(/Venue\s*(?:\/|&)\s*Address/gm)){
+            const rowArray = rowText.split('\n');
+            rowData['Venue'] = rowArray[0];
+            rowData['Address'] = rowArray.slice(1, rowArray.length).join(' ');
           } 
           else if(columnName === 'Contact'){
-            const { email, phone } = utils.extractEmailAndPhone(rowText);
-            rowData['Email'] = email;
-            rowData['Phone'] = phone;
+            const rowArray = rowText.split('\n');
+            rowData['Email'] = rowArray[0];
+            rowData['Phone'] = rowArray[1];
           } 
           else if(columnName === 'Date/Time'){
-            const { date, time } = utils.extractEventDateTime(rowText);
-            rowData['Date'] = date;
-            rowData['Start Time'] = time;
+            const rowArray = rowText.split('\n');
+            rowData['Date'] = rowArray[0];
+            rowData['Start Time'] = rowArray[1];
           } 
+          else if (columnName === 'Venue Seating Capacity'){
+            // If this value is 0, the event is a remote duel.
+            const playerCap = parseInt(rowText);
+            rowData['Player Cap'] = isNaN(playerCap) ? 0 : playerCap;
+          }
           else {
             rowData[columnName] = rowText;
           }
         });
+
         rowData['Genesys'] = isGenesys;
         regionalInfo.push(rowData);
       });
-    });
+
+    })
+
+    
   } catch (err) {
     console.error(err);
   }
@@ -101,19 +122,32 @@ async function scrapeInfoFromPage(pageUrl){
   return regionalInfo;
 }
 
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 async function scrapeRegionalInfo(){
   const regionals = await scrapeInfoFromPage('https://www.yugioh-card.com/en/events/regional-locations/');
 
-  //console.log(regionals.filter((event) => event['Venue'] === undefined).length)
-
-  regionals.forEach((event) => {
-    console.log(event['Address'])
-  })
 
   // Process Hosts
-  //await upsertHosts(regionals);
+  const hosts = regionals.map((event) => {
+    return {
+      name: event['Event Host'],
+      email: event['Email'],
+      phoneNumber: event['Phone']
+    }
+  })
+  await upsertHosts(hosts);
   // Process Venues
-  //await upsertVenues(regionals);
+  const venues = regionals.map((event) => {
+    return {
+      name: event['Venue'],
+      address: event['Address'],
+      state: event['State / Province'],
+      country: event['Country'],
+      playerCap: event['Player Cap']
+    };
+  })
+  await upsertVenues(venues);
   // Process Events
 }
 

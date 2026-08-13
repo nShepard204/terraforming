@@ -1,5 +1,21 @@
-require('dotenv').config();
+const path = require('path');
 const axios = require('axios');
+const { SearchBoxCore, SessionToken } = require('@mapbox/search-js-core');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+
+async function searchVenue(addressStr){
+  const search = new SearchBoxCore({ accessToken: process.env.MAPBOX_API_KEY });
+  const sessionToken = new SessionToken();
+
+  const result = await search.suggest(addressStr, { sessionToken });
+  if (result.suggestions.length === 0) return;
+
+  const suggestion = result.suggestions[0];
+  const { features } = await search.retrieve(suggestion, { sessionToken });
+  console.log(features[0].properties.name);
+  console.log(features[0].properties.full_address);
+  console.log();
+}
 
 async function getLatLonData(address){
   if (!address || typeof address !== 'string') {
@@ -19,5 +35,6 @@ async function getLatLonData(address){
 }
 
 module.exports = {
-  getLatLonData
+  getLatLonData,
+  searchVenue
 }
