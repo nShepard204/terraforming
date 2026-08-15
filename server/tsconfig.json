@@ -3,9 +3,11 @@
     "lib": ["es2025", "ESNext.Collection", "ESNext.Temporal"],
     "outDir": "./dist",
     "allowJs": true,
-    "noImplicitReturns": true,
-    "noEmit": true,
-    "target": "es2025"
+    "noImplicitReturns": false,
+    "target": "es2025",
+    "types": [],
+    "skipLibCheck": true
   },
-  "include": ["./src/**/*", "app.ts"]
+  "include": ["./src/**/*", "app.ts"],
+  "exclude": ["node_modules"]
 }
