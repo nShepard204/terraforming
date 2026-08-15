@@ -1,0 +1,19 @@
+import express, { type Express, type Request, type Response } from 'express';
+import cors from 'cors';
+
+const app: Express = express();
+
+app.use(cors());
+
+app.get('/', async (req: Request, res: Response) => {
+  try {
+    res.send(`Hello World!`);
+  } catch (error) {
+    console.error('Database query failed:', error);
+    res.status(500).json({ error: 'Failed to connect to the database.' });
+  }
+});
+
+app.listen(8080, () => {
+  console.log('server listening on port 8080');
+});

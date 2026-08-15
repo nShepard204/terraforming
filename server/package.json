@@ -1,15 +1,16 @@
 {
   "name": "ygo-event-tracker",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
-    "start": "node ./src/index.js",
+    "start": "node ./app.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
+  "type": "module",
   "dependencies": {
     "@mapbox/search-js-core": "^1.6.0",
     "axios": "^1.19.0",
@@ -18,9 +19,17 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "pg": "^8.23.0",
+    "pg-pool": "^3.14.0",
     "postgis": "^1.2.0"
   },
   "allowScripts": {
     "esbuild@0.27.0": true
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.2.0",
+    "@types/pg": "^8.21.0",
+    "typescript": "^7.0.2"
   }
 }

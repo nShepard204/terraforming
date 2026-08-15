@@ -1,17 +1,16 @@
-require('dotenv').config();
-const pg = require('pg');
-const { Pool } = pg;
+import 'dotenv/config';
+import { Pool } from 'pg';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   pipeline: true
 });
 
-async function query(text, params){
+export async function query(text, params){
   return pool.query(text, params)
 }
 
-async function getClient() {
+export async function getClient() {
   const client = await pool.connect();
   const query = client.query;
   const release = client.release;
@@ -34,9 +33,4 @@ async function getClient() {
     return release.apply(client);
   }
   return client;
-}
-
-module.exports = {
-  query,
-  getClient
 }

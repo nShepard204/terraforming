@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "lib": ["es2025", "ESNext.Collection", "ESNext.Temporal"],
+    "outDir": "./dist",
+    "allowJs": true,
+    "noImplicitReturns": true,
+    "noEmit": true,
+    "target": "es2025"
+  },
+  "include": ["./src/**/*", "app.ts"]
+}

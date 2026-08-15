@@ -1,14 +1,10 @@
-require('dotenv').config();
-const axios = require('axios');
-const cheerio = require('cheerio');
-const mapbox = require('../src/mapbox');
-const db = require('../db');
+import 'dotenv/config';
+import axios from 'axios';
+import * as cheerio from 'cheerio';
+import { getClient } from '../db/index.js';
 
-/**
- * @param {any[]} venues 
- */
-async function upsertVenues(venues) {
-  const client = await db.getClient();
+async function upsertVenues(venues: any[]) {
+  const client = await getClient();
   try {
     await client.query('BEGIN');
 
@@ -27,11 +23,9 @@ async function upsertVenues(venues) {
     client.release();
   }
 }
-/**
- * @param {any[]} hosts 
- */
-async function upsertHosts(hosts) {
-  const client = await db.getClient();
+
+async function upsertHosts(hosts: any[]) {
+  const client = await getClient();
   try {
     await client.query('BEGIN');
 
@@ -55,29 +49,24 @@ async function upsertHosts(hosts) {
  * @param {string} pageUrl 
  * @returns {Promise<any[]>}
  */
-async function scrapeInfoFromPage(pageUrl){
-  /** @type {any[]} */
-  const regionalInfo = [];
+async function scrapeInfoFromPage(pageUrl: string){
+  const regionalInfo: object[] = [];
 
   try {
     const { data } = await axios.get(pageUrl);
     const $ = cheerio.load(data);
 
-    /** @type {any[]} */
-    const columns = [];
-
     $('table').each((i, table) => {
-      const isGenesys = $(table).attr('id').includes('gen');
+      const isGenesys = $(table).attr('id')?.includes('gen') ?? false;
 
-      /** @type {any[]} */
-      const columns = [];
+      const columns: string[] = [];
 
       $(table).find('thead th').each((i, el) => {
         columns.push($(el).text().trim());
       });
 
       $(table).find('tbody tr').each((i, row) => {
-        const rowData = {};
+        const rowData: { [key: string]: any} = {};
         
         $(row).find('td').each((j, cell) => {
           const columnName = columns[j] || `column_${j}`;
@@ -122,23 +111,20 @@ async function scrapeInfoFromPage(pageUrl){
   return regionalInfo;
 }
 
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
 async function scrapeRegionalInfo(){
   const regionals = await scrapeInfoFromPage('https://www.yugioh-card.com/en/events/regional-locations/');
 
-
   // Process Hosts
-  const hosts = regionals.map((event) => {
+  const hosts = regionals.map((event: { [key: string]: any} ) => {
     return {
       name: event['Event Host'],
       email: event['Email'],
       phoneNumber: event['Phone']
-    }
+    };
   })
-  await upsertHosts(hosts);
+  //await upsertHosts(hosts);
   // Process Venues
-  const venues = regionals.map((event) => {
+  const venues = regionals.map((event: { [key: string]: any} ) => {
     return {
       name: event['Venue'],
       address: event['Address'],
@@ -147,12 +133,8 @@ async function scrapeRegionalInfo(){
       playerCap: event['Player Cap']
     };
   })
-  await upsertVenues(venues);
+  //await upsertVenues(venues);
   // Process Events
 }
 
 scrapeRegionalInfo();
-
-module.exports = {
-  scrapeRegionalInfo,
-}
