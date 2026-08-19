@@ -10,7 +10,7 @@ app.use(cors());
 
 app.get('/', async (req: Request, res: Response) => {
   try {
-    res.send(`Hello World!`);
+    res.send(`Hello World! This has been updated`);
   } catch (error) {
     console.error('Database query failed:', error);
     res.status(500).json({ error: 'Failed to connect to the database.' });
