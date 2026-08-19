@@ -1,5 +1,8 @@
 import express, { type Express, type Request, type Response } from 'express';
 import cors from 'cors';
+import cron from 'node-cron';
+
+cron.schedule('* * * * * *', './tasks/eventScraper.js');
 
 const app: Express = express();
 

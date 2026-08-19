@@ -6,7 +6,9 @@
     "noImplicitReturns": false,
     "target": "es2025",
     "types": [],
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "rewriteRelativeImportExtensions": true,
+    "allowImportingTsExtensions": true
   },
   "include": ["./src/**/*", "app.ts"],
   "exclude": ["node_modules"]
