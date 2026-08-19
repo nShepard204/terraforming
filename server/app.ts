@@ -5,7 +5,7 @@ import path from 'node:path';
 
 cron.schedule(
   '0 * * * *',
-  path.join(import.meta.dirname, './tasks/eventScraper.ts')
+  path.join(import.meta.dirname, './tasks/eventScraper.js')
 );
 
 const app: Express = express();
