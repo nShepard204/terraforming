@@ -1,12 +1,5 @@
 import express, { type Express, type Request, type Response } from 'express';
 import cors from 'cors';
-import cron from 'node-cron';
-import path from 'node:path';
-
-cron.schedule(
-  '0 * * * *',
-  path.join(import.meta.dirname, './tasks/eventScraper.js')
-);
 
 const app: Express = express();
 
