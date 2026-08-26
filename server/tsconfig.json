@@ -8,7 +8,8 @@
     "types": [],
     "skipLibCheck": true,
     "rewriteRelativeImportExtensions": true,
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "ignoreDeprecations": "6.0"
   },
   "include": ["./src/**/*", "app.ts"],
   "exclude": ["node_modules"]

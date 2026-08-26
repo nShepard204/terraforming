@@ -107,7 +107,7 @@ async function scrapEvents() {
   for (const venue of extractedVenues) {
     const id = await createVenue(venue);
     if (id !== undefined) {
-      venue.setId(id);
+      venue.id = id;
     }
   }
   const venues = extractedVenues.filter((venue) => venue.id !== undefined);
