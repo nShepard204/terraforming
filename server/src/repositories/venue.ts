@@ -41,7 +41,7 @@ export class Venue {
 }
 
 export async function createVenue(venue: Venue): Promise<number> {
-  const existingVenue = await findVenueByName(venue.name);
+  const existingVenue = await getVenueByName(venue.name);
   if (existingVenue.length === 0) {
     const sql =
       'INSERT INTO venues (name, address, state, country, player_cap) VALUES ($1, $2, $3, $4, $5) RETURNING *';
@@ -60,20 +60,20 @@ export async function createVenue(venue: Venue): Promise<number> {
   }
 }
 
-export async function findVenueByName(name: string) {
+export async function getVenueByName(name: string) {
   const sql = 'SELECT * FROM venues WHERE venues.name = $1';
   const { rows } = await query(sql, [name]);
   return rows[0] ?? [];
 }
 
-export async function findVenueById(id: number) {
+export async function getVenueById(id: number) {
   const sql =
     'SELECT name, address, state, country, player_cap, timezone, ST_X(location::geometry) AS lng, ST_Y(location::geometry) AS lat FROM venues WHERE venues.id = $1';
   const { rows } = await query(sql, [id]);
   return rows[0] ?? [];
 }
 
-export async function findAllVenues() {
+export async function getAllVenues() {
   const sql =
     'SELECT name, address, state, country, player_cap, ST_X(location::geometry) AS lng, ST_Y(location::geometry) AS lat FROM venues';
   const { rows } = await query(sql);
@@ -112,17 +112,3 @@ export async function updateVenue(venue: Venue) {
     venue.id,
   ]);
 }
-
-async function insertLocations() {
-  const venues = await findAllVenues();
-  venues.forEach(async (venue) => {
-    const coords = await searchAddressCoordinates(venue.address);
-    if (coords === undefined) return;
-
-    venue.location = coords;
-    await updateVenue(venue);
-  });
-}
-
-//await insertLocations();
-console.log(await findVenueById(45));

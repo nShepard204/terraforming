@@ -98,7 +98,7 @@ async function scrapEvents() {
   for (const host of extractedHosts) {
     const id = await createHost(host);
     if (id !== undefined) {
-      host.setId(id);
+      host.id = id;
     }
   }
   const hosts = extractedHosts.filter((host) => host.id !== undefined);
@@ -142,7 +142,7 @@ async function scrapEvents() {
   for (const event of extractedEvents) {
     const id = await createEvent(event);
     if (id !== undefined) {
-      event.setId(id);
+      event.id = id;
     }
   }
 }

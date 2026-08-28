@@ -3,6 +3,15 @@ import { type VenueCoords } from './venue.ts';
 import pkg from '@mapbox/search-js-core';
 const { GeocodingCore } = pkg;
 
+export function convertMilesToMeters(meters: number) {
+  return meters / 1609.344;
+}
+
+export function convertMetersToMiles(meters: number) {
+  const miles = meters / 1609.344;
+  return parseFloat(miles.toFixed(2));
+}
+
 export async function searchAddressCoordinates(
   address: string
 ): Promise<VenueCoords | undefined> {
