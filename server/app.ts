@@ -1,9 +1,11 @@
 import express, { type Express, type Request, type Response } from 'express';
+import venues from './src/routes/venues.ts';
 import cors from 'cors';
 
 const app: Express = express();
 
 app.use(cors()); //TODO: Restrict to only frontend URLs.
+app.use('/venues', venues);
 
 app.get('/', async (req: Request, res: Response) => {
   try {

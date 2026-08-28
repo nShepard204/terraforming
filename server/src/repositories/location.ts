@@ -43,7 +43,7 @@ export async function getNearbyVenues(userAddress: string, distance: number) {
     userCoords.lat,
     distanceMeters,
   ]);
-  console.log(rows);
+  return rows;
 }
 
 await getNearbyVenues('2299 Waters Edge Blvd, Columbus, OH 43209', 160);
