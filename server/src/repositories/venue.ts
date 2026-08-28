@@ -1,5 +1,4 @@
 import { query } from '../db/index.js';
-import { searchAddressCoordinates } from './mapbox.ts';
 
 export interface VenueCoords {
   lng: number;
@@ -31,6 +30,17 @@ export class Venue {
     this.location = location;
   }
 
+  static createVenueFromRow(row: any) {
+    const venueObj = new Venue(
+      row['name'],
+      row['address'],
+      row['state'],
+      row['country'],
+      row['player_cap']
+    );
+    return venueObj;
+  }
+
   public get id() {
     return this._id ?? 0;
   }
@@ -41,41 +51,46 @@ export class Venue {
 }
 
 export async function createVenue(venue: Venue): Promise<number> {
-  const existingVenue = await getVenueByName(venue.name);
-  if (existingVenue.length === 0) {
-    const sql =
-      'INSERT INTO venues (name, address, state, country, player_cap) VALUES ($1, $2, $3, $4, $5) RETURNING *';
-    const newVenueId = await query(sql, [
-      venue.name,
-      venue.address,
-      venue.state,
-      venue.country,
-      venue.playerCap,
-    ]);
-    // @ts-ignore
-    return newVenueId.rows[0]['id'];
-  } else {
-    // @ts-ignore
-    return existingVenue['id'];
+  let newId: number = 0;
+  try {
+    const existingVenue = await getVenueByName(venue.name);
+    if (existingVenue.length === 0) {
+      const sql =
+        'INSERT INTO venues (name, address, state, country, player_cap) VALUES ($1, $2, $3, $4, $5) RETURNING *';
+      const newVenueId = await query(sql, [
+        venue.name,
+        venue.address,
+        venue.state,
+        venue.country,
+        venue.playerCap,
+      ]);
+      // @ts-ignore
+      newId = newVenueId.rows[0]['id'];
+    } else {
+      // @ts-ignore
+      newId = existingVenue['id'];
+    }
+  } catch (error) {
+    console.log(error);
   }
+
+  return newId;
 }
 
 export async function getVenueByName(name: string) {
-  const sql = 'SELECT * FROM venues WHERE venues.name = $1';
+  const sql = 'SELECT * FROM venues_coords WHERE venues.name = $1';
   const { rows } = await query(sql, [name]);
   return rows[0] ?? [];
 }
 
 export async function getVenueById(id: number) {
-  const sql =
-    'SELECT name, address, state, country, player_cap, timezone, ST_X(location::geometry) AS lng, ST_Y(location::geometry) AS lat FROM venues WHERE venues.id = $1';
+  const sql = 'SELECT * FROM venues_coords WHERE venues.id = $1';
   const { rows } = await query(sql, [id]);
   return rows[0] ?? [];
 }
 
 export async function getAllVenues() {
-  const sql =
-    'SELECT name, address, state, country, player_cap, ST_X(location::geometry) AS lng, ST_Y(location::geometry) AS lat FROM venues';
+  const sql = 'SELECT * FROM venues_coords';
   const { rows } = await query(sql);
 
   const venues: Venue[] = rows.map((row: any) => {
