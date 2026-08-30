@@ -1,6 +1,7 @@
 import express, { type Express, type Request, type Response } from 'express';
-import venues from './src/routes/venues.ts';
+import venues from './routes/venues.ts';
 import cors from 'cors';
+import { AppDataSource } from './db/data-source.ts';
 
 const app: Express = express();
 
@@ -15,8 +16,15 @@ app.get('/', async (req: Request, res: Response) => {
   }
 });
 
-app.listen(8080, () => {
-  console.log('server listening on port 8080');
-});
+AppDataSource.initialize()
+  .then(() => {
+    app.listen(8080, () => {
+      console.log('server listening on port 8080');
+    });
+  })
+  .catch((error) => {
+    console.error('Failed to initialize the database connection', error);
+    process.exit(1);
+  });
 
 export default app;
