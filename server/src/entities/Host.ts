@@ -1,9 +1,12 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Event } from './Event.js';
+import { Event } from './event.ts';
 
 @Entity({ name: 'hosts' })
 export class Host {
-  @PrimaryGeneratedColumn('identity', { type: 'int', generatedIdentity: 'ALWAYS' })
+  @PrimaryGeneratedColumn('identity', {
+    type: 'int',
+    generatedIdentity: 'ALWAYS',
+  })
   id!: number;
 
   @Column({ type: 'text', nullable: true, unique: true })

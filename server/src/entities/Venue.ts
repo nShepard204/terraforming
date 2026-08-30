@@ -1,9 +1,17 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Event } from './Event.js';
+import { Event } from './event.ts';
+
+export interface VenueLocation {
+  type: 'Point';
+  coordinates: [lng: number, lat: number];
+}
 
 @Entity({ name: 'venues' })
 export class Venue {
-  @PrimaryGeneratedColumn('identity', { type: 'int', generatedIdentity: 'ALWAYS' })
+  @PrimaryGeneratedColumn('identity', {
+    type: 'int',
+    generatedIdentity: 'ALWAYS',
+  })
   id!: number;
 
   @Column({ type: 'text', nullable: true, unique: true })
@@ -26,7 +34,7 @@ export class Venue {
     srid: 4326,
     nullable: true,
   })
-  location!: string | null;
+  location!: VenueLocation | null;
 
   @Column({ type: 'text', nullable: true })
   timezone!: string | null;

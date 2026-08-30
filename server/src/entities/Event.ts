@@ -1,6 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Venue } from './Venue.js';
-import { Host } from './Host.js';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { Venue } from './venue.ts';
+import { Host } from './host.ts';
 
 export enum EventType {
   LOCAL = 'Local',
@@ -16,7 +22,10 @@ export enum EventType {
 
 @Entity({ name: 'events' })
 export class Event {
-  @PrimaryGeneratedColumn('identity', { type: 'int', generatedIdentity: 'ALWAYS' })
+  @PrimaryGeneratedColumn('identity', {
+    type: 'int',
+    generatedIdentity: 'ALWAYS',
+  })
   id!: number;
 
   @Column({ name: 'venue_id', type: 'int' })

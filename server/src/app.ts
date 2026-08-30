@@ -1,12 +1,17 @@
 import express, { type Express, type Request, type Response } from 'express';
-import venues from './routes/venues.ts';
 import cors from 'cors';
 import { AppDataSource } from './db/data-source.ts';
+
+try {
+  await AppDataSource.initialize();
+  console.log('Data Source has been initialized!');
+} catch (error) {
+  console.error('Error during Data Source initialization:', error);
+}
 
 const app: Express = express();
 
 app.use(cors()); //TODO: Restrict to only frontend URLs.
-app.use('/venues', venues);
 
 app.get('/', async (req: Request, res: Response) => {
   try {
@@ -16,15 +21,8 @@ app.get('/', async (req: Request, res: Response) => {
   }
 });
 
-AppDataSource.initialize()
-  .then(() => {
-    app.listen(8080, () => {
-      console.log('server listening on port 8080');
-    });
-  })
-  .catch((error) => {
-    console.error('Failed to initialize the database connection', error);
-    process.exit(1);
-  });
+app.listen(8080, () => {
+  console.log('server listening on port 8080');
+});
 
 export default app;

@@ -1,9 +1,9 @@
 import 'reflect-metadata';
 import 'dotenv/config';
 import { DataSource } from 'typeorm';
-import { Event } from '../entities/Event.js';
-import { Host } from '../entities/Host.js';
-import { Venue } from '../entities/Venue.js';
+import { Event } from '../entities/event.js';
+import { Host } from '../entities/host.js';
+import { Venue } from '../entities/venue.js';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
