@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import 'dotenv/config';
+import { Client } from 'pg';
 import { DataSource } from 'typeorm';
 import { Event } from '../entities/event.js';
 import { Host } from '../entities/host.js';
@@ -11,4 +12,5 @@ export const AppDataSource = new DataSource({
   entities: [Event, Host, Venue],
   synchronize: false,
   logging: false,
+  driver: { Client },
 });
