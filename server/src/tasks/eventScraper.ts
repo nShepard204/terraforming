@@ -1,13 +1,13 @@
-import 'dotenv/config';
-import axios from 'axios';
-import * as cheerio from 'cheerio';
-import { AppDataSource } from '../db/data-source.ts';
+// import 'dotenv/config';
+// import axios from 'axios';
+// import * as cheerio from 'cheerio';
+// import { AppDataSource } from '../db/data-source.ts';
 
-import { Event } from '../entities/event.ts';
-import { EventService } from '../services/event.ts';
-import { Host } from '../entities/host.ts';
-import { HostService } from '../services/host.ts';
-import { Venue } from '../entities/venue.ts';
+// import { Event } from '../entities/event.ts';
+// import { EventService } from '../services/event.ts';
+// import { Host } from '../entities/host.ts';
+// import { HostService } from '../services/host.ts';
+// import { Venue } from '../entities/venue.ts';
 
 // async function scrapeInfoFromPage(pageUrl: string) {
 //   const regionalInfo: object[] = [];
@@ -151,15 +151,15 @@ import { Venue } from '../entities/venue.ts';
 //   }
 // }
 
-async function test() {
-  await AppDataSource.initialize();
-  await HostService.createHost({
-    name: 'Millennium Games',
-    email: 'aj@millenniumgames.com',
-    phoneNumber: '585-427-2190',
-  });
-}
+// async function test() {
+//   await AppDataSource.initialize();
+//   await HostService.createHost({
+//     name: 'Millennium Games',
+//     email: 'aj@millenniumgames.com',
+//     phoneNumber: '585-427-2190',
+//   });
+// }
 
-await test();
+// await test();
 
 //scrapEvents();
