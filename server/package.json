@@ -1,9 +1,9 @@
 {
   "name": "terraforming-api",
   "version": "1.0.0",
-  "main": "app.ts",
+  "main": "src/app.ts",
   "scripts": {
-    "start": "node ./app.ts",
+    "start": "npm run build && node ./dist/app.js",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -23,6 +23,8 @@
     "pg": "^8.23.0",
     "pg-pool": "^3.14.0",
     "postgis": "^1.2.0",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^1.1.0",
     "zod": "^4.4.3"
   },
   "allowScripts": {
