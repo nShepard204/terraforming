@@ -1,19 +1,32 @@
 import express, { type Express, type Request, type Response } from 'express';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import { AppDataSource } from './db/data-source.ts';
 import events from './routes/events.ts';
 
-try {
-  await AppDataSource.initialize();
-  console.log('Data Source has been initialized!');
-} catch (error) {
-  console.error('Error during Data Source initialization:', error);
-}
+const allowedOrigins = [
+  'https://terraforming-ygo.vercel.app',
+  'http://localhost:5173',
+];
 
 const app: Express = express();
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (mobile apps, curl, etc)
+      if (!origin) return callback(null, true);
 
-app.use(cors()); //TODO: Restrict to only frontend URLs.
-app.use('/events', events);
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
+    optionsSuccessStatus: 200,
+  })
+);
+app.use('events', events);
 
 app.get('/', async (req: Request, res: Response) => {
   try {
@@ -23,8 +36,13 @@ app.get('/', async (req: Request, res: Response) => {
   }
 });
 
-app.listen(8080, () => {
-  console.log('server listening on port 8080');
-});
+AppDataSource.initialize()
+  .then(() => {
+    console.log('Database connection successful');
+    app.listen(8080, () => {
+      console.log('server listening on port 8080');
+    });
+  })
+  .catch((err) => console.log(err));
 
 export default app;
