@@ -1,6 +1,7 @@
 import express, { type Express, type Request, type Response } from 'express';
 import cors from 'cors';
 import { AppDataSource } from './db/data-source.ts';
+import events from './routes/events.ts';
 
 try {
   await AppDataSource.initialize();
@@ -12,6 +13,7 @@ try {
 const app: Express = express();
 
 app.use(cors()); //TODO: Restrict to only frontend URLs.
+app.use('/events', events);
 
 app.get('/', async (req: Request, res: Response) => {
   try {

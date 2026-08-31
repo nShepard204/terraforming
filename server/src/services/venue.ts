@@ -4,19 +4,19 @@ import { venueRepository } from '../repositories/venue.ts';
 
 export class VenueService {
   static async createVenue(data: DeepPartial<Venue>): Promise<Venue> {
-    return venueRepository.save(venueRepository.create(data));
+    return await venueRepository.save(venueRepository.create(data));
   }
 
   static async getVenueById(id: number): Promise<Venue | null> {
-    return venueRepository.findOneBy({ id });
+    return await venueRepository.findOneBy({ id });
   }
 
   static async getVenueByName(name: string): Promise<Venue | null> {
-    return venueRepository.findOneBy({ name });
+    return await venueRepository.findOneBy({ name });
   }
 
   static async getAllVenues(): Promise<Venue[]> {
-    return venueRepository.find();
+    return await venueRepository.find();
   }
 
   static async updateVenue(

@@ -1,37 +1,59 @@
-// import 'dotenv/config';
-// import { query } from '../db/index.js';
-// import { VenueLocation } from '../entities/venue.js';
-// import pkg from '@mapbox/search-js-core';
-// const { GeocodingCore } = pkg;
+import 'dotenv/config';
+import {
+  convertMetersToMiles,
+  convertMilesToMeters,
+} from '../helpers/helpers.ts';
+import { Event } from '../entities/event.ts';
+import { VenueLocation } from '../entities/venue.ts';
+import { eventRepository } from '../repositories/event.ts';
+import pkg from '@mapbox/search-js-core';
+const { GeocodingCore } = pkg;
 
-// export function convertMilesToMeters(meters: number) {
-//   return meters * 1609.344;
-// }
+export class LocationController {
+  private static geocode = new GeocodingCore({
+    accessToken: process.env.MAPBOX_API_KEY,
+  });
 
-// export function convertMetersToMiles(meters: number) {
-//   const miles = meters / 1609.344;
-//   return parseFloat(miles.toFixed(2));
-// }
+  static async getNearbyEvents(
+    address: string,
+    distance: number
+  ): Promise<Event[]> {
+    const userCoords = await this.getAddressCoordinates(address);
+    if (userCoords === undefined) return [];
 
-// export async function searchAddressCoordinates(
-//   address: string
-// ): Promise<VenueLocation | undefined> {
-//   const geocode = new GeocodingCore({
-//     accessToken: process.env.MAPBOX_API_KEY,
-//   });
-//   const results = await geocode.forward(address);
+    const distanceMeters = convertMilesToMeters(distance);
+    const [lng, lat] = userCoords.coordinates;
 
-//   if (results.features.length === 0) return;
+    return eventRepository
+      .createQueryBuilder('event')
+      .innerJoinAndSelect('event.venue', 'venue')
+      .innerJoinAndSelect('event.host', 'host')
+      .where(
+        'ST_DWithin(venue.location, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography, :distanceMeters)',
+        { lng, lat, distanceMeters }
+      )
+      .andWhere('event.date > CURRENT_DATE')
+      .getMany();
+  }
 
-//   const coords: VenueLocation = {
-//     coordinates: [
-//       results.features[0].geometry.coordinates[0],
-//       results.features[0].geometry.coordinates[1],
-//     ],
-//   };
+  static async getAddressCoordinates(
+    address: string
+  ): Promise<VenueLocation | undefined> {
+    const results = await this.geocode.forward(address);
 
-//   return coords;
-// }
+    if (results.features.length === 0) return;
+
+    const coords: VenueLocation = {
+      type: 'Point',
+      coordinates: [
+        results.features[0].geometry.coordinates[0],
+        results.features[0].geometry.coordinates[1],
+      ],
+    };
+
+    return coords;
+  }
+}
 
 // export async function getNearbyVenues(userAddress: string, distance: number) {
 //   const userCoords = await searchAddressCoordinates(userAddress);
