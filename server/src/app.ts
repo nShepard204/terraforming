@@ -1,34 +1,36 @@
-import express, { type Express, type Request, type Response } from 'express';
-import cors, { CorsOptions } from 'cors';
+import express, {
+  type Express,
+  type NextFunction,
+  type Request,
+  type Response,
+} from 'express';
 import { AppDataSource } from './db/data-source.ts';
 import events from './routes/events.ts';
 
-const allowedOrigins = [
-  'https://terraforming-ygo.vercel.app',
-  'http://localhost:5173',
-];
-const corsOptions = {
-  //@ts-ignore
-  origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, curl, etc)
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 200,
-};
-
 const app: Express = express();
-app.use(cors());
-//app.options(/(.*)/, cors(corsOptions));
 
-app.use('events', events);
+// Vercel Functions invoke the exported `app` directly as a request handler and
+// never call `.listen()`, so DB init can't gate on that. Instead, lazily
+// initialize on first use and memoize the promise so concurrent requests on a
+// cold start all await the same connection rather than racing to init twice.
+let dataSourceReady: Promise<typeof AppDataSource> | null = null;
+function ensureDataSourceInitialized() {
+  if (!dataSourceReady) {
+    dataSourceReady = AppDataSource.initialize();
+  }
+  return dataSourceReady;
+}
+
+app.use(async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await ensureDataSourceInitialized();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.use('/events', events);
 
 app.get('/', async (req: Request, res: Response) => {
   try {
@@ -38,13 +40,8 @@ app.get('/', async (req: Request, res: Response) => {
   }
 });
 
-AppDataSource.initialize()
-  .then(() => {
-    console.log('Database connection successful');
-    app.listen(8080, () => {
-      console.log('server listening on port 8080');
-    });
-  })
-  .catch((err) => console.log(err));
+app.listen(8080, () => {
+  console.log('server listening on port 8080');
+});
 
 export default app;
