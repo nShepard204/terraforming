@@ -22,6 +22,7 @@ app.use(
       }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Access-Control-Allow-Origin'],
     credentials: true,
     optionsSuccessStatus: 200,
   })
