@@ -72,8 +72,10 @@ async function scrapeInfoFromPage(pageUrl: string) {
   return regionalInfo;
 }
 
-async function scrapEvents() {
-  await AppDataSource.initialize();
+export async function scrapeUsRegionals() {
+  if (!AppDataSource.isInitialized) {
+    await AppDataSource.initialize();
+  }
 
   const scrapedEvents = await scrapeInfoFromPage(
     'https://www.yugioh-card.com/en/events/regional-locations/'
@@ -89,16 +91,15 @@ async function scrapEvents() {
       phoneNumber: eventData['Phone'],
     });
 
-    const venueCoords = await LocationController.getAddressCoordinates(
-      eventData['Address']
-    );
     const venue = await VenueService.upsertScrapedVenue({
       name: eventData['Venue'],
       address: eventData['Address'],
       state: eventData['State / Province'],
       country: eventData['Country'],
       playerCap: eventData['Player Cap'],
-      location: venueCoords,
+      location: await LocationController.getAddressCoordinates(
+        eventData['Address']
+      ),
     });
 
     await EventService.upsertScrapedEvent({
@@ -112,5 +113,3 @@ async function scrapEvents() {
     });
   }
 }
-
-scrapEvents();
