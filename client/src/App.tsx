@@ -1,7 +1,7 @@
 import "./App.css";
 import axios from "axios";
 import { useState } from "react";
-import hero from "./assets/hero.png";
+import terraforming from "./assets/terraforming.png";
 
 const distanceSelectors = [10, 50, 100, 150, 200, 250, 300];
 
@@ -57,7 +57,7 @@ function App() {
   return (
     <div className="page">
       <header className="hero">
-        <img className="hero-logo" src={hero} alt="" />
+        <img className="hero-logo" src={terraforming} alt="" />
         <h1>Terraforming</h1>
         <p className="tagline">Find nearby Yu-Gi-Oh! events</p>
       </header>
