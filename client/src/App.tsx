@@ -55,7 +55,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [authView, setAuthView] = useState<AuthViewPath>("SIGN_IN");
   const [authSkipped, setAuthSkipped] = useState(
-    () => localStorage.getItem(AUTH_SKIP_KEY) === "true"
+    () => localStorage.getItem(AUTH_SKIP_KEY) === "true",
   );
 
   const handleAuthNavigate = useCallback((href: string) => {
@@ -106,7 +106,7 @@ function App() {
         {children}
       </a>
     ),
-    [handleAuthNavigate]
+    [handleAuthNavigate],
   );
 
   function handleSkipAuth() {
@@ -163,7 +163,7 @@ function App() {
         </div>
 
         <header className="hero">
-          <img className="hero-logo" src={hero} alt="" />
+          <img className="hero-logo" src={terraforming} alt="" />
           <h1>Terraforming</h1>
           <p className="tagline">Find nearby Yu-Gi-Oh! events</p>
         </header>
@@ -261,9 +261,7 @@ function App() {
       </div>
 
       <SignedOut>
-        {!authSkipped && (
-          <AuthPrompt view={authView} onSkip={handleSkipAuth} />
-        )}
+        {!authSkipped && <AuthPrompt view={authView} onSkip={handleSkipAuth} />}
       </SignedOut>
     </NeonAuthUIProvider>
   );
