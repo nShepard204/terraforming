@@ -3,7 +3,6 @@ import axios from "axios";
 import terraforming from "./assets/terraforming.png";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Toaster } from "sonner";
-import hero from "./assets/hero.png";
 import {
   NeonAuthUIProvider,
   SignedIn,
