@@ -1,8 +1,8 @@
 import "./App.css";
 import axios from "axios";
+import terraforming from "./assets/terraforming.png";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Toaster } from "sonner";
-import hero from "./assets/hero.png";
 import {
   NeonAuthUIProvider,
   SignedIn,
@@ -54,7 +54,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [authView, setAuthView] = useState<AuthViewPath>("SIGN_IN");
   const [authSkipped, setAuthSkipped] = useState(
-    () => localStorage.getItem(AUTH_SKIP_KEY) === "true"
+    () => localStorage.getItem(AUTH_SKIP_KEY) === "true",
   );
 
   const handleAuthNavigate = useCallback((href: string) => {
@@ -105,7 +105,7 @@ function App() {
         {children}
       </a>
     ),
-    [handleAuthNavigate]
+    [handleAuthNavigate],
   );
 
   function handleSkipAuth() {
@@ -162,7 +162,7 @@ function App() {
         </div>
 
         <header className="hero">
-          <img className="hero-logo" src={hero} alt="" />
+          <img className="hero-logo" src={terraforming} alt="" />
           <h1>Terraforming</h1>
           <p className="tagline">Find nearby Yu-Gi-Oh! events</p>
         </header>
@@ -260,9 +260,7 @@ function App() {
       </div>
 
       <SignedOut>
-        {!authSkipped && (
-          <AuthPrompt view={authView} onSkip={handleSkipAuth} />
-        )}
+        {!authSkipped && <AuthPrompt view={authView} onSkip={handleSkipAuth} />}
       </SignedOut>
     </NeonAuthUIProvider>
   );
