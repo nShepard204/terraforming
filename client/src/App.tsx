@@ -138,6 +138,7 @@ function App() {
   }
 
   function handleSearchNearbyEvents(addr: string, dist: number) {
+    console.log();
     const requestUrl = `${import.meta.env.VITE_BACKEND_URL}/events/search-nearby`;
 
     setIsLoading(true);
@@ -198,6 +199,7 @@ function App() {
               onRetrieve={(feature) =>
                 setUserAddress(feature.properties.full_address)
               }
+              onClear={() => setUserAddress("")}
             />
           </div>
           <div className="field">
