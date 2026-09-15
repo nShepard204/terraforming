@@ -10,6 +10,8 @@ import tasks from './routes/tasks.ts';
 
 const app: Express = express();
 
+app.use(express.json());
+
 // Vercel Functions invoke the exported `app` directly as a request handler and
 // never call `.listen()`, so DB init can't gate on that. Instead, lazily
 // initialize on first use and memoize the promise so concurrent requests on a

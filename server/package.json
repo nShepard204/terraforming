@@ -6,7 +6,9 @@
     "start": "npm run build && node ./dist/app.js",
     "dev": "nodemon --watch src --ext ts --exec \"npm run build && node --env-file .env.local ./dist/app.js\"",
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "migration:run": "npm run build && node --env-file .env.local node_modules/typeorm/cli.js migration:run -d dist/db/data-source.js",
+    "migration:revert": "npm run build && node --env-file .env.local node_modules/typeorm/cli.js migration:revert -d dist/db/data-source.js"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +21,7 @@
     "cheerio": "^1.2.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "jose": "^6.2.12",
     "node-cron": "^4.6.0",
     "pg": "^8.23.0",
     "pg-pool": "^3.14.0",

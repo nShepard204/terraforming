@@ -62,4 +62,11 @@ export class Event {
     nullable: true,
   })
   eventType!: EventType | null;
+
+  // References neon_auth.user(id), which isn't one of this app's own
+  // TypeORM entities, so there's no @ManyToOne relation here, just the raw
+  // FK column. Null for events that weren't submitted by a logged-in user
+  // (e.g. scraped events).
+  @Column({ name: 'submitted_by', type: 'uuid', nullable: true })
+  submittedBy!: string | null;
 }

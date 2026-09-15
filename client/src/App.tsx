@@ -14,6 +14,7 @@ import {
 } from "@neondatabase/auth-ui";
 import { authClient } from "./lib/auth-client.ts";
 import { AuthPrompt } from "./components/AuthPrompt";
+import { AddEventModal } from "./components/AddEventModal.tsx";
 
 const AUTH_SKIP_KEY = "terraforming:auth-skipped";
 const distanceSelectors = [10, 50, 100, 150, 200, 250, 300];
@@ -56,6 +57,7 @@ function App() {
   const [authSkipped, setAuthSkipped] = useState(
     () => localStorage.getItem(AUTH_SKIP_KEY) === "true",
   );
+  const [showAddEvent, setShowAddEvent] = useState(false);
 
   const handleAuthNavigate = useCallback((href: string) => {
     const view = resolveAuthView(href);
@@ -151,6 +153,12 @@ function App() {
       <div className="page">
         <div className="account-bar">
           <SignedIn>
+            <button
+              className="account-bar-add-event"
+              onClick={() => setShowAddEvent(true)}
+            >
+              + Add Event
+            </button>
             <UserButton size="icon" />
           </SignedIn>
           <SignedOut>
@@ -161,6 +169,17 @@ function App() {
             )}
           </SignedOut>
         </div>
+
+        {showAddEvent && (
+          <AddEventModal
+            onClose={() => setShowAddEvent(false)}
+            onCreated={() => {
+              if (userAddress) {
+                handleSearchNearbyEvents(userAddress, userDistance);
+              }
+            }}
+          />
+        )}
 
         <header className="hero">
           <img className="hero-logo" src={terraforming} alt="" />
