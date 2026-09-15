@@ -45,6 +45,7 @@
 /* Search card */
 
 .search-card {
+  --field-height: 2.75rem;
   display: flex;
   flex-wrap: wrap;
   align-items: end;
@@ -69,8 +70,8 @@
   color: var(--color-text-muted);
 }
 
-.field input,
 .field select {
+  height: var(--field-height);
   padding: 0.55rem 0.7rem;
   border: 1px solid var(--color-border);
   border-radius: 8px;
@@ -79,17 +80,47 @@
   color: var(--color-text);
 }
 
-.field input:focus,
 .field select:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(45, 212, 232, 0.2);
 }
 
+/* The Mapbox Geocoder widget's theme variables don't cover its input's own
+   text/placeholder color, which is hardcoded near-black in the widget's
+   default styles, so it needs to be set directly to match the rest of the
+   form. The widget also has a same-colored `:focus` variant of that rule
+   with higher specificity than a plain element selector, so it must be
+   matched here too or the override only applies while the field is blurred
+   (i.e. the text looks fine until you actually click in and start typing). */
+.field mapbox-geocoder input,
+.field mapbox-geocoder input:focus {
+  /* The widget's outer wrapper adds its own 1px border on each side around
+     this input, so the input itself needs to be 2px shorter than the other
+     fields' total (border-box) height to end up the same overall size. */
+  height: calc(var(--field-height) - 2px);
+  color: var(--color-text);
+}
+
+/* The geocoder renders its suggestions dropdown as a sibling of the input
+   inside .field. As a flex item it was adding an extra `gap` worth of space
+   even when empty, pushing the address field taller than the distance
+   field; taking it out of flow with absolute positioning removes it from
+   the flex layout entirely, whether or not it currently has suggestions. */
+.field mapbox-search-listbox {
+  position: absolute;
+}
+
+.field mapbox-geocoder input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
 .search-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  height: var(--field-height);
   min-width: 140px;
   padding: 0.65rem 1.5rem;
   border: none;
