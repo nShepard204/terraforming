@@ -2,4 +2,4 @@
 
 # The dev server is always running on port 8080. Reuse it.
 
-# When asked to make a new git branch, also make a new remote branch as well.
+# Before you make any changes to the codebase, always create a new git branch (local and remote) based off of the 'preview' branch and make your changes on that branch.
