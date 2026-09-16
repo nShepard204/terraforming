@@ -3,6 +3,7 @@ import axios from "axios";
 import terraforming from "./assets/terraforming.png";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Toaster } from "sonner";
+import { Geocoder } from "@mapbox/search-js-react";
 import {
   NeonAuthUIProvider,
   SignedIn,
@@ -17,6 +18,22 @@ import { AuthPrompt } from "./components/AuthPrompt";
 
 const AUTH_SKIP_KEY = "terraforming:auth-skipped";
 const distanceSelectors = [10, 50, 100, 150, 200, 250, 300];
+
+const geocoderTheme = {
+  variables: {
+    colorText: "var(--color-text)",
+    colorPrimary: "var(--color-primary)",
+    colorSecondary: "var(--color-text-muted)",
+    colorBackground: "var(--color-bg)",
+    colorBackgroundHover: "var(--color-tint)",
+    colorBackgroundActive: "var(--color-tint)",
+    border: "1px solid var(--color-border)",
+    borderRadius: "8px",
+    boxShadow: "0 4px 16px rgba(45, 212, 232, 0.1)",
+    fontFamily:
+      '"Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif',
+  },
+};
 
 function resolveAuthView(href: string): AuthViewPath | undefined {
   const segment = href.split("?")[0].split("/").filter(Boolean).pop();
@@ -121,6 +138,7 @@ function App() {
   }
 
   function handleSearchNearbyEvents(addr: string, dist: number) {
+    console.log();
     const requestUrl = `${import.meta.env.VITE_BACKEND_URL}/events/search-nearby`;
 
     setIsLoading(true);
@@ -170,13 +188,18 @@ function App() {
 
         <section className="search-card">
           <div className="field">
-            <label htmlFor="user-address">Address</label>
-            <input
-              id="user-address"
-              type="text"
+            <label>Address</label>
+            <Geocoder
+              accessToken={import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}
+              options={{ types: new Set(["address"]) }}
+              theme={geocoderTheme}
               placeholder="Enter your address"
               value={userAddress}
-              onChange={(e) => setUserAddress(e.target.value)}
+              onChange={setUserAddress}
+              onRetrieve={(feature) =>
+                setUserAddress(feature.properties.full_address)
+              }
+              onClear={() => setUserAddress("")}
             />
           </div>
           <div className="field">
