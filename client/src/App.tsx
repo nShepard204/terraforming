@@ -3,7 +3,6 @@ import axios from "axios";
 import terraforming from "./assets/terraforming.png";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Toaster } from "sonner";
-import { Geocoder } from "@mapbox/search-js-react";
 import {
   NeonAuthUIProvider,
   SignedIn,
@@ -14,67 +13,48 @@ import {
   type AuthViewPath,
 } from "@neondatabase/auth-ui";
 import { authClient } from "./lib/auth-client.ts";
-import { AuthPrompt } from "./components/AuthPrompt";
-import { AddEventModal } from "./components/AddEventModal.tsx";
+import { AuthPrompt } from "./components/AuthPrompt/AuthPrompt.tsx";
+import { AddEventModal } from "./components/AddEventModal/AddEventModal.tsx";
+import { AddressSearch } from "./components/AddressSearch/AddressSearch.tsx";
+import type { EventInfo } from "./lib/models.ts";
+import { EventTable } from "./components/EventTable/EventTable.tsx";
+import { useQuery } from "@tanstack/react-query";
 
 const AUTH_SKIP_KEY = "terraforming:auth-skipped";
 const distanceSelectors = [10, 50, 100, 150, 200, 250, 300];
-
-const geocoderTheme = {
-  variables: {
-    colorText: "var(--color-text)",
-    colorPrimary: "var(--color-primary)",
-    colorSecondary: "var(--color-text-muted)",
-    colorBackground: "var(--color-bg)",
-    colorBackgroundHover: "var(--color-tint)",
-    colorBackgroundActive: "var(--color-tint)",
-    border: "1px solid var(--color-border)",
-    borderRadius: "8px",
-    boxShadow: "0 4px 16px rgba(45, 212, 232, 0.1)",
-    fontFamily:
-      '"Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif',
-  },
-};
 
 function resolveAuthView(href: string): AuthViewPath | undefined {
   const segment = href.split("?")[0].split("/").filter(Boolean).pop();
   return getViewByPath(authViewPaths, segment) as AuthViewPath | undefined;
 }
 
-interface EventVenue {
-  id: number;
-  name: string | null;
-  address: string | null;
-  state: string | null;
-  country: string | null;
-}
-
-interface EventHost {
-  id: number;
-  name: string | null;
-}
-
-interface NearbyEvent {
-  id: number;
-  date: string | null;
-  startTime: string | null;
-  eventType: string | null;
-  genesys: boolean | null;
-  dragonDuels: boolean | null;
-  venue: EventVenue;
-  host: EventHost;
-}
-
 function App() {
-  const [events, setEvents] = useState<NearbyEvent[] | null>(null);
+  //const [events, setEvents] = useState<EventInfo[] | null>(null);
   const [userAddress, setUserAddress] = useState("");
   const [userDistance, setUserDistance] = useState(distanceSelectors[0]);
-  const [isLoading, setIsLoading] = useState(false);
   const [authView, setAuthView] = useState<AuthViewPath>("SIGN_IN");
   const [authSkipped, setAuthSkipped] = useState(
     () => localStorage.getItem(AUTH_SKIP_KEY) === "true",
   );
   const [showAddEvent, setShowAddEvent] = useState(false);
+
+  // Tanstack Queries.
+  const nearbyEventsQuery = useQuery({
+    queryKey: ["nearby-events"],
+    queryFn: async () => {
+      const requestUrl = `${import.meta.env.VITE_BACKEND_URL}/events/search-nearby`;
+
+      const response = await axios.get<EventInfo[]>(requestUrl, {
+        params: {
+          address: userAddress,
+          distance: userDistance,
+        },
+      });
+
+      return response.data;
+    },
+    enabled: false,
+  });
 
   const handleAuthNavigate = useCallback((href: string) => {
     const view = resolveAuthView(href);
@@ -139,26 +119,6 @@ function App() {
     setAuthSkipped(false);
   }
 
-  function handleSearchNearbyEvents(addr: string, dist: number) {
-    console.log();
-    const requestUrl = `${import.meta.env.VITE_BACKEND_URL}/events/search-nearby`;
-
-    setIsLoading(true);
-    axios
-      .get<NearbyEvent[]>(requestUrl, {
-        params: {
-          address: addr,
-          distance: dist,
-        },
-      })
-      .then((response) => {
-        setEvents(response.data);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }
-
   return (
     <NeonAuthUIProvider
       authClient={authClient}
@@ -193,7 +153,7 @@ function App() {
             onClose={() => setShowAddEvent(false)}
             onCreated={() => {
               if (userAddress) {
-                handleSearchNearbyEvents(userAddress, userDistance);
+                nearbyEventsQuery.refetch();
               }
             }}
           />
@@ -208,17 +168,10 @@ function App() {
         <section className="search-card">
           <div className="field">
             <label>Address</label>
-            <Geocoder
-              accessToken={import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}
-              options={{ types: new Set(["address"]) }}
-              theme={geocoderTheme}
+            <AddressSearch
               placeholder="Enter your address"
-              value={userAddress}
-              onChange={setUserAddress}
-              onRetrieve={(feature) =>
-                setUserAddress(feature.properties.full_address)
-              }
-              onClear={() => setUserAddress("")}
+              address={userAddress}
+              setAddress={setUserAddress}
             />
           </div>
           <div className="field">
@@ -236,11 +189,11 @@ function App() {
             </select>
           </div>
           <button
-            className={`search-button${isLoading ? " loading" : ""}`}
-            onClick={() => handleSearchNearbyEvents(userAddress, userDistance)}
-            disabled={userAddress === "" || isLoading}
+            className={`search-button${nearbyEventsQuery.isFetching ? " loading" : ""}`}
+            onClick={() => nearbyEventsQuery.refetch()}
+            disabled={userAddress === "" || nearbyEventsQuery.isFetching}
           >
-            {isLoading ? (
+            {nearbyEventsQuery.isFetching ? (
               <span className="spinner" aria-label="Loading" />
             ) : (
               "Find Events"
@@ -248,58 +201,7 @@ function App() {
           </button>
         </section>
 
-        {events !== null && (
-          <section className="results">
-            {events.length === 0 ? (
-              <p className="empty-state">
-                No events found. Try a wider search distance.
-              </p>
-            ) : (
-              <div className="table-card">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Start Time</th>
-                      <th>Event Type</th>
-                      <th>Venue</th>
-                      <th>Address</th>
-                      <th>Host</th>
-                      <th>Genesys</th>
-                      <th>Dragon Duels</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {events.map((event) => (
-                      <tr key={event.id}>
-                        <td>{event.date ?? "-"}</td>
-                        <td>{event.startTime ?? "-"}</td>
-                        <td>{event.eventType ?? "-"}</td>
-                        <td>{event.venue.name ?? "-"}</td>
-                        <td>{event.venue.address ?? "-"}</td>
-                        <td>{event.host.name ?? "-"}</td>
-                        <td>
-                          <span
-                            className={`badge ${event.genesys ? "badge-yes" : "badge-no"}`}
-                          >
-                            {event.genesys ? "Yes" : "No"}
-                          </span>
-                        </td>
-                        <td>
-                          <span
-                            className={`badge ${event.dragonDuels ? "badge-yes" : "badge-no"}`}
-                          >
-                            {event.dragonDuels ? "Yes" : "No"}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
-        )}
+        <EventTable events={nearbyEventsQuery.data ?? null} />
       </div>
 
       <SignedOut>

@@ -1,15 +1,12 @@
 import { useState, type FormEvent } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { authClient } from "../lib/auth-client.ts";
+import { authClient } from "../../lib/auth-client";
 import "./AddEventModal.css";
 
 const eventTypes = [
   "Local",
   "Regional",
-  "YCS",
-  "WCQ",
-  "Worlds",
   "Case Tournament",
   "OTS Championship",
   "Sneak Peek",

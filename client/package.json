@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "start:dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -13,6 +13,7 @@
     "@mapbox/search-js-react": "^1.6.0",
     "@neondatabase/auth-ui": "^0.3.0-beta",
     "@neondatabase/neon-js": "^0.7.0-beta",
+    "@tanstack/react-query": "^5.103.2",
     "axios": "^1.19.0",
     "dotenv": "^17.4.2",
     "react": "^19.2.8",
@@ -20,6 +21,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@tanstack/eslint-plugin-query": "^5.103.2",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
