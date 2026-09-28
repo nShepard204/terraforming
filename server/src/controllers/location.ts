@@ -54,20 +54,3 @@ export class LocationController {
     return coords;
   }
 }
-
-// export async function getNearbyVenues(userAddress: string, distance: number) {
-//   const userCoords = await searchAddressCoordinates(userAddress);
-//   if (userCoords === undefined) return;
-
-//   const distanceMeters = convertMilesToMeters(distance);
-//   const sql =
-//     'SELECT * FROM venues_coords WHERE venues_coords.id IN (SELECT id FROM venues WHERE ST_DWithin(location::geography, ST_MakePoint($1, $2)::geography, $3))';
-//   const { rows, command } = await query(sql, [
-//     userCoords.lng,
-//     userCoords.lat,
-//     distanceMeters,
-//   ]);
-//   return rows;
-// }
-
-//await getNearbyVenues('2299 Waters Edge Blvd, Columbus, OH 43209', 160);
