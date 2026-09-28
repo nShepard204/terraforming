@@ -15,6 +15,7 @@ import {
 } from "@neondatabase/auth-ui";
 import { authClient } from "./lib/auth-client.ts";
 import { AuthPrompt } from "./components/AuthPrompt";
+import { PrivacyPolicyModal } from "./components/PrivacyPolicyModal";
 
 const AUTH_SKIP_KEY = "terraforming:auth-skipped";
 const distanceSelectors = [10, 50, 100, 150, 200, 250, 300];
@@ -73,6 +74,7 @@ function App() {
   const [authSkipped, setAuthSkipped] = useState(
     () => localStorage.getItem(AUTH_SKIP_KEY) === "true",
   );
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
 
   const handleAuthNavigate = useCallback((href: string) => {
     const view = resolveAuthView(href);
@@ -281,11 +283,25 @@ function App() {
             )}
           </section>
         )}
+
+        <footer className="site-footer">
+          <button
+            type="button"
+            className="privacy-highlight"
+            onClick={() => setShowPrivacyPolicy(true)}
+          >
+            🔒 We never store the addresses you search
+          </button>
+        </footer>
       </div>
 
       <SignedOut>
         {!authSkipped && <AuthPrompt view={authView} onSkip={handleSkipAuth} />}
       </SignedOut>
+
+      {showPrivacyPolicy && (
+        <PrivacyPolicyModal onClose={() => setShowPrivacyPolicy(false)} />
+      )}
     </NeonAuthUIProvider>
   );
 }
