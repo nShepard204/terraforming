@@ -1,7 +1,10 @@
 import { useState, type FormEvent } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import DatePicker from "react-datepicker";
+import { format } from "date-fns";
 import { authClient } from "../../lib/auth-client";
+import "react-datepicker/dist/react-datepicker.css";
 import "./AddEventModal.css";
 
 const eventTypes = [
@@ -20,8 +23,8 @@ interface AddEventModalProps {
 
 export function AddEventModal({ onClose, onCreated }: AddEventModalProps) {
   const [eventType, setEventType] = useState<string>(eventTypes[0]);
-  const [date, setDate] = useState("");
-  const [startTime, setStartTime] = useState("");
+  const [date, setDate] = useState<Date | null>(null);
+  const [startTime, setStartTime] = useState<Date | null>(null);
   const [genesys, setGenesys] = useState(false);
   const [dragonDuels, setDragonDuels] = useState(false);
   const [venueName, setVenueName] = useState("");
@@ -49,8 +52,8 @@ export function AddEventModal({ onClose, onCreated }: AddEventModalProps) {
         `${import.meta.env.VITE_BACKEND_URL}/events`,
         {
           eventType,
-          date: date || null,
-          startTime: startTime || null,
+          date: date ? format(date, "yyyy-MM-dd") : null,
+          startTime: startTime ? format(startTime, "HH:mm") : null,
           genesys,
           dragonDuels,
           venue: {
@@ -116,19 +119,31 @@ export function AddEventModal({ onClose, onCreated }: AddEventModalProps) {
 
           <label>
             Date
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
+            <DatePicker
+              selected={date}
+              onChange={(value: Date | null) => setDate(value)}
+              dateFormat="MM/dd/yyyy"
+              placeholderText="mm/dd/yyyy"
+              autoComplete="off"
+              wrapperClassName="add-event-datepicker-wrapper"
+              portalId="add-event-datepicker-portal"
             />
           </label>
 
           <label>
             Start Time
-            <input
-              type="time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
+            <DatePicker
+              selected={startTime}
+              onChange={(value: Date | null) => setStartTime(value)}
+              showTimeSelect
+              showTimeSelectOnly
+              timeIntervals={5}
+              timeCaption="Time"
+              dateFormat="h:mm aa"
+              placeholderText="--:-- --"
+              autoComplete="off"
+              wrapperClassName="add-event-datepicker-wrapper"
+              portalId="add-event-datepicker-portal"
             />
           </label>
 

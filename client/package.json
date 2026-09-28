@@ -15,8 +15,10 @@
     "@neondatabase/neon-js": "^0.7.0-beta",
     "@tanstack/react-query": "^5.103.2",
     "axios": "^1.19.0",
+    "date-fns": "^4.4.0",
     "dotenv": "^17.4.2",
     "react": "^19.2.8",
+    "react-datepicker": "^9.1.0",
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
