@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import DatePicker from "react-datepicker";
 import { format } from "date-fns";
 import { authClient } from "../../lib/auth-client";
+import type { EventHost, EventVenue } from "../../lib/models.ts";
 import "react-datepicker/dist/react-datepicker.css";
 import "./AddEventModal.css";
 
@@ -27,14 +29,28 @@ export function AddEventModal({ onClose, onCreated }: AddEventModalProps) {
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [genesys, setGenesys] = useState(false);
   const [dragonDuels, setDragonDuels] = useState(false);
-  const [venueName, setVenueName] = useState("");
-  const [venueAddress, setVenueAddress] = useState("");
-  const [venueState, setVenueState] = useState("");
-  const [venueCountry, setVenueCountry] = useState("");
-  const [hostName, setHostName] = useState("");
-  const [hostEmail, setHostEmail] = useState("");
-  const [hostPhone, setHostPhone] = useState("");
+  const [venueId, setVenueId] = useState("");
+  const [hostId, setHostId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const venuesQuery = useQuery({
+    queryKey: ["venues"],
+    queryFn: async () => {
+      const response = await axios.get<EventVenue[]>(
+        `${import.meta.env.VITE_BACKEND_URL}/venues`,
+      );
+      return response.data;
+    },
+  });
+  const hostsQuery = useQuery({
+    queryKey: ["hosts"],
+    queryFn: async () => {
+      const response = await axios.get<EventHost[]>(
+        `${import.meta.env.VITE_BACKEND_URL}/hosts`,
+      );
+      return response.data;
+    },
+  });
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -56,17 +72,8 @@ export function AddEventModal({ onClose, onCreated }: AddEventModalProps) {
           startTime: startTime ? format(startTime, "HH:mm") : null,
           genesys,
           dragonDuels,
-          venue: {
-            name: venueName,
-            address: venueAddress,
-            state: venueState || null,
-            country: venueCountry || null,
-          },
-          host: {
-            name: hostName,
-            email: hostEmail || null,
-            phoneNumber: hostPhone || null,
-          },
+          venueId: Number(venueId),
+          hostId: Number(hostId),
         },
         { headers: { Authorization: `Bearer ${token}` } },
       );
@@ -169,69 +176,46 @@ export function AddEventModal({ onClose, onCreated }: AddEventModalProps) {
           <h3 className="add-event-section">Venue</h3>
 
           <label className="add-event-span">
-            Name
-            <input
+            Venue
+            <select
               required
-              value={venueName}
-              onChange={(e) => setVenueName(e.target.value)}
-            />
-          </label>
-
-          <label className="add-event-span">
-            Address
-            <input
-              required
-              value={venueAddress}
-              onChange={(e) => setVenueAddress(e.target.value)}
-              placeholder="123 Main St, City, State"
-            />
-          </label>
-
-          <label>
-            State
-            <input
-              value={venueState}
-              maxLength={2}
-              onChange={(e) => setVenueState(e.target.value.toUpperCase())}
-              placeholder="OH"
-            />
-          </label>
-
-          <label>
-            Country
-            <input
-              value={venueCountry}
-              onChange={(e) => setVenueCountry(e.target.value)}
-              placeholder="USA"
-            />
+              value={venueId}
+              onChange={(e) => setVenueId(e.target.value)}
+              disabled={venuesQuery.isLoading}
+            >
+              <option value="" disabled>
+                {venuesQuery.isLoading
+                  ? "Loading venues..."
+                  : "Select a venue"}
+              </option>
+              {venuesQuery.data?.map((venue) => (
+                <option key={venue.id} value={venue.id}>
+                  {venue.name ?? "Unnamed venue"}
+                  {venue.state ? ` (${venue.state})` : ""}
+                </option>
+              ))}
+            </select>
           </label>
 
           <h3 className="add-event-section">Host</h3>
 
           <label className="add-event-span">
-            Name
-            <input
+            Host
+            <select
               required
-              value={hostName}
-              onChange={(e) => setHostName(e.target.value)}
-            />
-          </label>
-
-          <label>
-            Email
-            <input
-              type="email"
-              value={hostEmail}
-              onChange={(e) => setHostEmail(e.target.value)}
-            />
-          </label>
-
-          <label>
-            Phone
-            <input
-              value={hostPhone}
-              onChange={(e) => setHostPhone(e.target.value)}
-            />
+              value={hostId}
+              onChange={(e) => setHostId(e.target.value)}
+              disabled={hostsQuery.isLoading}
+            >
+              <option value="" disabled>
+                {hostsQuery.isLoading ? "Loading hosts..." : "Select a host"}
+              </option>
+              {hostsQuery.data?.map((host) => (
+                <option key={host.id} value={host.id}>
+                  {host.name ?? "Unnamed host"}
+                </option>
+              ))}
+            </select>
           </label>
         </div>
 

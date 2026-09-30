@@ -7,6 +7,8 @@ import express, {
 import { AppDataSource } from './db/data-source.ts';
 import events from './routes/events.ts';
 import tasks from './routes/tasks.ts';
+import venues from './routes/venues.ts';
+import hosts from './routes/hosts.ts';
 
 const app: Express = express();
 
@@ -35,6 +37,8 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
 
 app.use('/events', events);
 app.use('/tasks', tasks);
+app.use('/venues', venues);
+app.use('/hosts', hosts);
 
 app.get('/', async (req: Request, res: Response) => {
   try {

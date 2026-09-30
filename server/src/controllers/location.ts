@@ -1,8 +1,5 @@
 import 'dotenv/config';
-import {
-  convertMetersToMiles,
-  convertMilesToMeters,
-} from '../helpers/helpers.ts';
+import { convertMilesToMeters } from '../helpers/helpers.ts';
 import { Event } from '../entities/event.ts';
 import { VenueLocation } from '../entities/venue.ts';
 import { eventRepository } from '../repositories/event.ts';

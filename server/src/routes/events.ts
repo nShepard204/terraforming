@@ -28,50 +28,29 @@ const CreateEventBody = z.object({
   startTime: z.string().nullable().optional(),
   genesys: z.boolean().nullable().optional(),
   dragonDuels: z.boolean().nullable().optional(),
-  venue: z.object({
-    name: z.string().min(1),
-    address: z.string().min(1),
-    state: z.string().min(1).max(2).nullable().optional(),
-    country: z.string().min(1).nullable().optional(),
-  }),
-  host: z.object({
-    name: z.string().min(1),
-    email: z.string().email().nullable().optional(),
-    phoneNumber: z.string().nullable().optional(),
-  }),
+  venueId: z.coerce.number().int().positive(),
+  hostId: z.coerce.number().int().positive(),
 });
 
 router.post('/', requireAuth, async (req: Request, res: Response) => {
   const body = CreateEventBody.parse(req.body);
 
-  const location = await LocationController.getAddressCoordinates(
-    body.venue.address
-  );
-  if (location === undefined) {
-    res.status(400).json({ error: 'Could not find that venue address.' });
+  const [venue, host] = await Promise.all([
+    VenueService.getVenueById(body.venueId),
+    HostService.getHostById(body.hostId),
+  ]);
+  if (venue === null) {
+    res.status(400).json({ error: 'Selected venue does not exist.' });
     return;
   }
-
-  const venue = await VenueService.upsertScrapedVenue({
-    name: body.venue.name,
-    address: body.venue.address,
-    state: body.venue.state,
-    country: body.venue.country,
-    location,
-  });
-  const host = await HostService.upsertScrapedHost({
-    name: body.host.name,
-    email: body.host.email,
-    phoneNumber: body.host.phoneNumber,
-  });
-  if (venue === null || host === null) {
-    res.status(500).json({ error: 'Failed to save venue or host.' });
+  if (host === null) {
+    res.status(400).json({ error: 'Selected host does not exist.' });
     return;
   }
 
   const created = await EventService.createEvent({
-    venueId: venue.id,
-    hostId: host.id,
+    venueId: body.venueId,
+    hostId: body.hostId,
     date: body.date,
     startTime: body.startTime,
     eventType: body.eventType,
