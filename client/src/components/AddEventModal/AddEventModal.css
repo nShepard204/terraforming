@@ -75,12 +75,12 @@
   grid-column: 1 / -1;
   margin: 0.25rem 0 -0.25rem;
   font-size: 0.95rem;
-  color: var(--color-text);
+  color: var(--color-text-muted);
   border-top: 1px solid var(--color-border);
   padding-top: 0.75rem;
 }
 
-.add-event-grid input,
+.add-event-grid input:not(.add-event-select__input),
 .add-event-grid select {
   height: 2.5rem;
   padding: 0.5rem 0.65rem;
@@ -92,7 +92,7 @@
   color: var(--color-text);
 }
 
-.add-event-grid input:focus,
+.add-event-grid input:not(.add-event-select__input):focus,
 .add-event-grid select:focus {
   outline: none;
   border-color: var(--color-primary);
@@ -192,6 +192,95 @@
   background: var(--color-primary) !important;
   color: #04141a !important;
   font-weight: 600;
+}
+
+/* react-select runs with `unstyled`, so everything visual comes from here.
+   The shared input rule above skips its inner search input, since the
+   control itself draws the border. The menu is portaled to <body> (see
+   menuPortalTarget) for the same clipping reasons as the date pickers. */
+.add-event-select__control {
+  min-height: 2.5rem;
+  padding: 0 0.65rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 400;
+  background: var(--color-bg);
+  color: var(--color-text);
+  cursor: text;
+}
+
+.add-event-select__control--is-focused {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(45, 212, 232, 0.2);
+}
+
+.add-event-select__control--is-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.add-event-select__placeholder {
+  color: var(--color-text-muted);
+}
+
+.add-event-select__indicators {
+  gap: 0.25rem;
+  color: var(--color-text-muted);
+}
+
+.add-event-select__indicator {
+  padding: 0.25rem;
+  cursor: pointer;
+}
+
+.add-event-select__indicator:hover {
+  color: var(--color-text);
+}
+
+.add-event-select__indicator-separator {
+  width: 1px;
+  align-self: stretch;
+  margin: 0.5rem 0;
+  background: var(--color-border);
+}
+
+.add-event-select__menu-portal {
+  z-index: 1000;
+}
+
+.add-event-select__menu {
+  margin-top: 0.35rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(45, 212, 232, 0.1);
+  overflow: hidden;
+}
+
+.add-event-select__menu-list {
+  padding: 0.25rem 0;
+}
+
+.add-event-select__option {
+  padding: 0.5rem 0.75rem;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.add-event-select__option--is-focused {
+  background: var(--color-tint);
+}
+
+.add-event-select__option--is-selected {
+  background: var(--color-primary);
+  color: #04141a;
+  font-weight: 600;
+}
+
+.add-event-select__menu-notice {
+  padding: 0.5rem 0.75rem;
+  color: var(--color-text-muted);
 }
 
 .add-event-checkboxes {

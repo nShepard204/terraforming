@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import DatePicker from "react-datepicker";
+import Select from "react-select";
 import { format } from "date-fns";
 import { authClient } from "../../lib/auth-client";
 import type { EventHost, EventVenue } from "../../lib/models.ts";
@@ -18,6 +19,11 @@ const eventTypes = [
   "Yu-Gi-Oh Day",
 ] as const;
 
+interface SelectOption {
+  value: number;
+  label: string;
+}
+
 interface AddEventModalProps {
   onClose: () => void;
   onCreated: () => void;
@@ -29,8 +35,8 @@ export function AddEventModal({ onClose, onCreated }: AddEventModalProps) {
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [genesys, setGenesys] = useState(false);
   const [dragonDuels, setDragonDuels] = useState(false);
-  const [venueId, setVenueId] = useState("");
-  const [hostId, setHostId] = useState("");
+  const [venue, setVenue] = useState<SelectOption | null>(null);
+  const [host, setHost] = useState<SelectOption | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const venuesQuery = useQuery({
@@ -52,6 +58,15 @@ export function AddEventModal({ onClose, onCreated }: AddEventModalProps) {
     },
   });
 
+  const venueOptions: SelectOption[] = (venuesQuery.data ?? []).map((v) => ({
+    value: v.id,
+    label: `${v.name ?? "Unnamed venue"}${v.state ? ` (${v.state})` : ""}`,
+  }));
+  const hostOptions: SelectOption[] = (hostsQuery.data ?? []).map((h) => ({
+    value: h.id,
+    label: h.name ?? "Unnamed host",
+  }));
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
 
@@ -72,8 +87,8 @@ export function AddEventModal({ onClose, onCreated }: AddEventModalProps) {
           startTime: startTime ? format(startTime, "HH:mm") : null,
           genesys,
           dragonDuels,
-          venueId: Number(venueId),
-          hostId: Number(hostId),
+          venueId: venue?.value,
+          hostId: host?.value,
         },
         { headers: { Authorization: `Bearer ${token}` } },
       );
@@ -175,48 +190,47 @@ export function AddEventModal({ onClose, onCreated }: AddEventModalProps) {
 
           <h3 className="add-event-section">Venue</h3>
 
-          <label className="add-event-span">
-            Venue
-            <select
+          <div className="add-event-span">
+            <Select<SelectOption>
+              aria-label="Venue"
               required
-              value={venueId}
-              onChange={(e) => setVenueId(e.target.value)}
-              disabled={venuesQuery.isLoading}
-            >
-              <option value="" disabled>
-                {venuesQuery.isLoading
-                  ? "Loading venues..."
-                  : "Select a venue"}
-              </option>
-              {venuesQuery.data?.map((venue) => (
-                <option key={venue.id} value={venue.id}>
-                  {venue.name ?? "Unnamed venue"}
-                  {venue.state ? ` (${venue.state})` : ""}
-                </option>
-              ))}
-            </select>
-          </label>
+              unstyled
+              isClearable
+              classNamePrefix="add-event-select"
+              options={venueOptions}
+              value={venue}
+              onChange={setVenue}
+              isLoading={venuesQuery.isLoading}
+              isDisabled={venuesQuery.isLoading}
+              placeholder={
+                venuesQuery.isLoading ? "Loading venues..." : "Search venues..."
+              }
+              noOptionsMessage={() => "No matching venues"}
+              menuPosition="fixed"
+            />
+          </div>
 
           <h3 className="add-event-section">Host</h3>
 
-          <label className="add-event-span">
-            Host
-            <select
+          <div className="add-event-span">
+            <Select<SelectOption>
+              aria-label="Host"
               required
-              value={hostId}
-              onChange={(e) => setHostId(e.target.value)}
-              disabled={hostsQuery.isLoading}
-            >
-              <option value="" disabled>
-                {hostsQuery.isLoading ? "Loading hosts..." : "Select a host"}
-              </option>
-              {hostsQuery.data?.map((host) => (
-                <option key={host.id} value={host.id}>
-                  {host.name ?? "Unnamed host"}
-                </option>
-              ))}
-            </select>
-          </label>
+              unstyled
+              isClearable
+              classNamePrefix="add-event-select"
+              options={hostOptions}
+              value={host}
+              onChange={setHost}
+              isLoading={hostsQuery.isLoading}
+              isDisabled={hostsQuery.isLoading}
+              placeholder={
+                hostsQuery.isLoading ? "Loading hosts..." : "Search hosts..."
+              }
+              noOptionsMessage={() => "No matching hosts"}
+              menuPosition="fixed"
+            />
+          </div>
         </div>
 
         <button
