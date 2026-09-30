@@ -38,7 +38,7 @@ async function scrapeInfoFromPage(pageUrl: string) {
               const columnName = columns[j] || `column_${j}`;
               const rowText = $(cell).text().trim(); //.replace(/[\r\n]+/gm, " ");
 
-              if (columnName.match(/Venue\s*(?:\/|&)\s*Address/gm)) {
+              if (columnName.match(/Venue.*Address/gm)) {
                 const rowArray = rowText.split('\n');
                 rowData['Venue'] = rowArray[0];
                 rowData['Address'] = rowArray
