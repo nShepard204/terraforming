@@ -39,6 +39,7 @@ export class LocationController {
   static async getAddressCoordinates(
     address: string
   ): Promise<VenueLocation | undefined> {
+    console.log(`Address Param Error: ${address}`);
     const results = await this.geocode.forward(address);
 
     if (results.features.length === 0) return;
