@@ -29,7 +29,6 @@ function resolveAuthView(href: string): AuthViewPath | undefined {
 }
 
 function App() {
-  //const [events, setEvents] = useState<EventInfo[] | null>(null);
   const [userAddress, setUserAddress] = useState("");
   const [userDistance, setUserDistance] = useState(distanceSelectors[0]);
   const [authView, setAuthView] = useState<AuthViewPath>("SIGN_IN");
