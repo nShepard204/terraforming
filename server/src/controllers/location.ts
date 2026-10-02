@@ -51,4 +51,37 @@ export class LocationController {
 
     return coords;
   }
+
+  // Geocodes an address and also pulls the 2-letter region/country codes out
+  // of the result, matching how scraped venues store `state` and `country`.
+  // `region_code` isn't in the SDK's types but the v6 API returns it.
+  static async geocodeVenueAddress(address: string): Promise<
+    | {
+        location: VenueLocation;
+        state: string | null;
+        country: string | null;
+      }
+    | undefined
+  > {
+    const results = await this.geocode.forward(address);
+    const feature = results.features[0];
+    if (feature === undefined) return;
+
+    const context = feature.properties.context as {
+      region?: { region_code?: string };
+      country?: { country_code?: string };
+    };
+
+    return {
+      location: {
+        type: 'Point',
+        coordinates: [
+          feature.geometry.coordinates[0],
+          feature.geometry.coordinates[1],
+        ],
+      },
+      state: context.region?.region_code?.slice(0, 2).toUpperCase() ?? null,
+      country: context.country?.country_code?.toUpperCase() ?? null,
+    };
+  }
 }
