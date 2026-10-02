@@ -1,8 +1,5 @@
 import 'dotenv/config';
-import {
-  convertMetersToMiles,
-  convertMilesToMeters,
-} from '../helpers/helpers.ts';
+import { convertMilesToMeters } from '../helpers/helpers.ts';
 import { Event } from '../entities/event.ts';
 import { VenueLocation } from '../entities/venue.ts';
 import { eventRepository } from '../repositories/event.ts';
@@ -54,21 +51,37 @@ export class LocationController {
 
     return coords;
   }
+
+  // Geocodes an address and also pulls the 2-letter region/country codes out
+  // of the result, matching how scraped venues store `state` and `country`.
+  // `region_code` isn't in the SDK's types but the v6 API returns it.
+  static async geocodeVenueAddress(address: string): Promise<
+    | {
+        location: VenueLocation;
+        state: string | null;
+        country: string | null;
+      }
+    | undefined
+  > {
+    const results = await this.geocode.forward(address);
+    const feature = results.features[0];
+    if (feature === undefined) return;
+
+    const context = feature.properties.context as {
+      region?: { region_code?: string };
+      country?: { country_code?: string };
+    };
+
+    return {
+      location: {
+        type: 'Point',
+        coordinates: [
+          feature.geometry.coordinates[0],
+          feature.geometry.coordinates[1],
+        ],
+      },
+      state: context.region?.region_code?.slice(0, 2).toUpperCase() ?? null,
+      country: context.country?.country_code?.toUpperCase() ?? null,
+    };
+  }
 }
-
-// export async function getNearbyVenues(userAddress: string, distance: number) {
-//   const userCoords = await searchAddressCoordinates(userAddress);
-//   if (userCoords === undefined) return;
-
-//   const distanceMeters = convertMilesToMeters(distance);
-//   const sql =
-//     'SELECT * FROM venues_coords WHERE venues_coords.id IN (SELECT id FROM venues WHERE ST_DWithin(location::geography, ST_MakePoint($1, $2)::geography, $3))';
-//   const { rows, command } = await query(sql, [
-//     userCoords.lng,
-//     userCoords.lat,
-//     distanceMeters,
-//   ]);
-//   return rows;
-// }
-
-//await getNearbyVenues('2299 Waters Edge Blvd, Columbus, OH 43209', 160);
